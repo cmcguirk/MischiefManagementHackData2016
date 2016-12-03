@@ -1,0 +1,155 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Single City</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+	<div class="container">
+		<div class="page-header">
+			<h1>Meeting Spots per Single Person in Norfolk Zip Codes</h1>
+		</div>
+		<canvas id="dateSpotsPerSingleChart" width="1200" height="700" ></canvas>
+	</div>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+	<script>
+		var singlesData = [];
+
+		Papa.parse(
+			"http://mischiefmanagementhackdata2016.azurewebsites.net/Data/Demographics.csv",
+			{
+				download:true,
+				header:true,
+				complete:function(results)
+				{
+					console.log(results[0]);
+
+					results.data.forEach(new function(item, index)
+					{
+						var singleItem =
+						{
+							Zip:item.ZipCode,
+							SingleCount:!(item.totalpop) ? 0 : parseInt(item.totalpop),
+							Ent1:0,
+							Ent2:0,
+							Ent3:0,
+							Ent4:0,
+							Res1:0,
+							Res2:0,
+							Res3:0,
+							Res4:0,
+							Pub1:0,
+							Pub2:0,
+							Pub3:0,
+							Pub4:0,
+							Rel1:0,
+							Rel2:0,
+							Rel3:0,
+							Rel4:0
+						};
+
+						singlesData.push(singleItem);
+					});
+				},
+				error:function(error, file)
+				{
+					console.log(error);
+				}
+			});
+
+		Papa.parse(
+			"http://mischiefmanagementhackdata2016.azurewebsites.net/Data/MeetSpots.csv",
+			{
+				download:true,
+				header:true,
+				complete:function(results)
+				{
+					console.log(results.data[0]);
+					
+					results.data.forEach(new function(item, index)
+					{
+						var placeItem = singlesData.find(new function(singleItem)
+						{
+							return singleItem.Zip == item.Zip;
+						});
+
+						if (!placeItem)
+						{
+							return;
+						}
+
+						placeItem[item.PlaceType + "1"] = !(item.Cat1) ? 0 : parseInt(item.Cat1);
+						placeItem[item.PlaceType + "2"] = !(item.Cat2) ? 0 : parseInt(item.Cat2);
+						placeItem[item.PlaceType + "3"] = !(item.Cat3) ? 0 : parseInt(item.Cat3);
+						placeItem[item.PlaceType + "4"] = !(item.Cat4) ? 0 : parseInt(item.Cat4);
+					});
+				},
+				error:function(error, file)
+				{
+					console.log(error);
+				}
+			});
+
+		singlesData.sort(new function(a, b) { return a.Zip.localeCompare(b.Zip); });
+		var zipCodeLabels = [];
+		var onesPer1000Singles = [];
+		var twosPer1000Singles = [];
+		var threesPer1000Singles = [];
+		var foursPer1000Singles = [];
+
+		singlesData.forEach(new function(item, index)
+		{
+			var thousandSinglesCount = item.SingleCount / 1000.0;
+			onesPer1000Singles.push((item.Ent1 + item.Res1 + item.Pub1 + item.Rel1) / thousandSinglesCount);
+			twosPer1000Singles.push((item.Ent2 + item.Res2 + item.Pub2 + item.Rel2) / thousandSinglesCount);
+			threesPer1000Singles.push((item.Ent3 + item.Res3 + item.Pub3 + item.Rel3) / thousandSinglesCount);
+			foursPer1000Singles.push((item.Ent4 + item.Res4 + item.Pub4 + item.Rel4) / thousandSinglesCount);
+			zipCodeLabels.push(item.Zip);
+		});
+
+		var dateSpotsPerSingleChart = new Chart(
+			"dateSpotsPerSingleChart",
+			{
+				type:'bar',
+				data:{
+					labels:zipCodeLabels,
+					datasets:[
+						{
+							label:"Category 1",
+							backgroundColor:'rgba(255, 99, 132, 0.2)',
+							borderColor:'rgba(255,99,132,1)',
+							borderWidth:1,
+							data:onesPer1000Singles
+						},
+						{
+							label:"Category 2",
+							backgroundColor:'rgba(99, 255, 132, 0.2)',
+							borderColor:'rgba(99,255,132,1)',
+							borderWidth:1,
+							data:twosPer1000Singles
+						},
+						{
+							label:"Category 3",
+							backgroundColor:'rgba(132, 99, 255, 0.2)',
+							borderColor:'rgba(132,99,255,1)',
+							borderWidth:1,
+							data:threesPer1000Singles
+						},
+						{
+							label:"Category 4",
+							backgroundColor:'rgba(185,55,109, 0.2)',
+							borderColor:'rgba(185,55,109,1)',
+							borderWidth:1,
+							data:foursPer1000Singles
+						}]
+				}
+			});
+	</script>
+</body>
+</html>
