@@ -10,7 +10,7 @@
 <body>
 	<div class="container">
 		<div class="page-header">
-			<h1>Meeting Spots per Single Person in Norfolk Zip Codes</h1>
+			<h1>Meeting Spots per 1000 Single People in Norfolk Zip Codes</h1>
 		</div>
 		<canvas id="dateSpotsPerSingleChart" width="1200" height="700" ></canvas>
 	</div>
@@ -30,7 +30,7 @@
 				{
 					console.log(results[0]);
 
-					results.data.forEach(new function(item, index)
+					results.data.forEach(function(item, index)
 					{
 						var singleItem =
 						{
@@ -56,98 +56,98 @@
 
 						singlesData.push(singleItem);
 					});
-				},
-				error:function(error, file)
-				{
-					console.log(error);
-				}
-			});
 
-		Papa.parse(
-			"http://mischiefmanagementhackdata2016.azurewebsites.net/Data/MeetSpots.csv",
-			{
-				download:true,
-				header:true,
-				complete:function(results)
-				{
-					console.log(results.data[0]);
-					
-					results.data.forEach(new function(item, index)
-					{
-						var placeItem = singlesData.find(new function(singleItem)
+					Papa.parse(
+						"http://mischiefmanagementhackdata2016.azurewebsites.net/Data/MeetSpots.csv",
 						{
-							return singleItem.Zip == item.Zip;
+							download:true,
+							header:true,
+							complete:function(results)
+							{
+								console.log(results.data[0]);
+
+								results.data.forEach(function(item, index)
+								{
+									var placeItem = singlesData.find(function(singleItem)
+									{
+										return singleItem.Zip == item.Zip;
+									});
+
+									if (!placeItem)
+									{
+										return;
+									}
+
+									placeItem[item.PlaceType + "1"] = !(item.Cat1) ? 0 : parseInt(item.Cat1);
+									placeItem[item.PlaceType + "2"] = !(item.Cat2) ? 0 : parseInt(item.Cat2);
+									placeItem[item.PlaceType + "3"] = !(item.Cat3) ? 0 : parseInt(item.Cat3);
+									placeItem[item.PlaceType + "4"] = !(item.Cat4) ? 0 : parseInt(item.Cat4);
+								});
+
+								singlesData.sort(function(a, b) { return a.Zip.localeCompare(b.Zip); });
+								var zipCodeLabels = [];
+								var onesPer1000Singles = [];
+								var twosPer1000Singles = [];
+								var threesPer1000Singles = [];
+								var foursPer1000Singles = [];
+
+								singlesData.forEach(function(item, index)
+								{
+									var thousandSinglesCount = item.SingleCount / 1000.0;
+									onesPer1000Singles.push((item.Ent1 + item.Res1 + item.Pub1 + item.Rel1) / thousandSinglesCount);
+									twosPer1000Singles.push((item.Ent2 + item.Res2 + item.Pub2 + item.Rel2) / thousandSinglesCount);
+									threesPer1000Singles.push((item.Ent3 + item.Res3 + item.Pub3 + item.Rel3) / thousandSinglesCount);
+									foursPer1000Singles.push((item.Ent4 + item.Res4 + item.Pub4 + item.Rel4) / thousandSinglesCount);
+									zipCodeLabels.push(item.Zip);
+								});
+
+								var dateSpotsPerSingleChart = new Chart(
+									"dateSpotsPerSingleChart",
+									{
+										type:'bar',
+										data:{
+											labels:zipCodeLabels,
+											datasets:[
+												{
+													label:"Okay",
+													backgroundColor:'rgba(255, 99, 132, 0.2)',
+													borderColor:'rgba(255,99,132,1)',
+													borderWidth:1,
+													data:onesPer1000Singles
+												},
+												{
+													label:"Nice",
+													backgroundColor:'rgba(99, 255, 132, 0.2)',
+													borderColor:'rgba(99,255,132,1)',
+													borderWidth:1,
+													data:twosPer1000Singles
+												},
+												{
+													label:"Great",
+													backgroundColor:'rgba(132, 99, 255, 0.2)',
+													borderColor:'rgba(132,99,255,1)',
+													borderWidth:1,
+													data:threesPer1000Singles
+												},
+												{
+													label:"Awesome!",
+													backgroundColor:'rgba(185,55,109, 0.2)',
+													borderColor:'rgba(185,55,109,1)',
+													borderWidth:1,
+													data:foursPer1000Singles
+												}]
+										}
+									});
+							},
+							error:function(error, file)
+							{
+								console.log(error);
+							}
 						});
-
-						if (!placeItem)
-						{
-							return;
-						}
-
-						placeItem[item.PlaceType + "1"] = !(item.Cat1) ? 0 : parseInt(item.Cat1);
-						placeItem[item.PlaceType + "2"] = !(item.Cat2) ? 0 : parseInt(item.Cat2);
-						placeItem[item.PlaceType + "3"] = !(item.Cat3) ? 0 : parseInt(item.Cat3);
-						placeItem[item.PlaceType + "4"] = !(item.Cat4) ? 0 : parseInt(item.Cat4);
-					});
 				},
 				error:function(error, file)
 				{
 					console.log(error);
-				}
-			});
-
-		singlesData.sort(new function(a, b) { return a.Zip.localeCompare(b.Zip); });
-		var zipCodeLabels = [];
-		var onesPer1000Singles = [];
-		var twosPer1000Singles = [];
-		var threesPer1000Singles = [];
-		var foursPer1000Singles = [];
-
-		singlesData.forEach(new function(item, index)
-		{
-			var thousandSinglesCount = item.SingleCount / 1000.0;
-			onesPer1000Singles.push((item.Ent1 + item.Res1 + item.Pub1 + item.Rel1) / thousandSinglesCount);
-			twosPer1000Singles.push((item.Ent2 + item.Res2 + item.Pub2 + item.Rel2) / thousandSinglesCount);
-			threesPer1000Singles.push((item.Ent3 + item.Res3 + item.Pub3 + item.Rel3) / thousandSinglesCount);
-			foursPer1000Singles.push((item.Ent4 + item.Res4 + item.Pub4 + item.Rel4) / thousandSinglesCount);
-			zipCodeLabels.push(item.Zip);
-		});
-
-		var dateSpotsPerSingleChart = new Chart(
-			"dateSpotsPerSingleChart",
-			{
-				type:'bar',
-				data:{
-					labels:zipCodeLabels,
-					datasets:[
-						{
-							label:"Category 1",
-							backgroundColor:'rgba(255, 99, 132, 0.2)',
-							borderColor:'rgba(255,99,132,1)',
-							borderWidth:1,
-							data:onesPer1000Singles
-						},
-						{
-							label:"Category 2",
-							backgroundColor:'rgba(99, 255, 132, 0.2)',
-							borderColor:'rgba(99,255,132,1)',
-							borderWidth:1,
-							data:twosPer1000Singles
-						},
-						{
-							label:"Category 3",
-							backgroundColor:'rgba(132, 99, 255, 0.2)',
-							borderColor:'rgba(132,99,255,1)',
-							borderWidth:1,
-							data:threesPer1000Singles
-						},
-						{
-							label:"Category 4",
-							backgroundColor:'rgba(185,55,109, 0.2)',
-							borderColor:'rgba(185,55,109,1)',
-							borderWidth:1,
-							data:foursPer1000Singles
-						}]
 				}
 			});
 	</script>
